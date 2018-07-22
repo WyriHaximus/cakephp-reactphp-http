@@ -10,7 +10,7 @@
     }
   ],
   "require": {
-    "php": "^7.1",
+    "php": "^7.2",
     "api-clients/cs-fixer-config": "dev-master",
     "cakephp/cakephp": "^3.0.0",
     "doctrine/annotations": "^1.2",
@@ -26,7 +26,8 @@
   "autoload": {
     "psr-4": {
       "WyriHaximus\\React\\Cake\\Http\\": "src/"
-    }
+    },
+    "files": ["src/functions_include.php"]
   },
   "autoload-dev": {
     "psr-4": {
@@ -36,7 +37,7 @@
   "config": {
     "sort-packages": true,
     "platform": {
-      "php": "7.1.9"
+      "php": "7.2"
     }
   },
   "scripts": {

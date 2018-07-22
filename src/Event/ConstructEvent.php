@@ -1,17 +1,10 @@
 <?php
 
-/**
- * This file is part of Ratchet.
- *
- ** (c) 2016 Cees-Jan Kiewiet
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
 namespace WyriHaximus\React\Cake\Http\Event;
 
 use Cake\Event\Event;
 use Cake\Event\EventManager;
+use Psr\Log\LoggerInterface;
 use React\EventLoop\LoopInterface;
 
 class ConstructEvent extends Event
@@ -21,29 +14,30 @@ class ConstructEvent extends Event
     /**
      * @param LoopInterface $loop
      * @param EventManager $eventManager
+     * @param LoggerInterface $logger
      * @return static
      */
-    public static function create(LoopInterface $loop, EventManager $eventManager)
+    public static function create(LoopInterface $loop, EventManager $eventManager, LoggerInterface $logger)
     {
         return new static(static::EVENT, $loop, [
             'loop' => $loop,
             'eventManager' => $eventManager,
+            'logger' => $logger,
         ]);
     }
 
-    /**
-     * @return LoopInterface
-     */
-    public function getLoop()
+    public function getLoop(): LoopInterface
     {
         return $this->data()['loop'];
     }
 
-    /**
-     * @return EventManager
-     */
-    public function getEventManager()
+    public function getEventManager(): EventManager
     {
         return $this->data()['eventManager'];
+    }
+
+    public function getLogger(): LoggerInterface
+    {
+        return $this->data()['logger'];
     }
 }

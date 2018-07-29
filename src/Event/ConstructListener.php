@@ -28,6 +28,8 @@ use WyriHaximus\Ratchet\Security\AuthorizationManager;
 use WyriHaximus\Ratchet\Security\JWTAuthProvider;
 use WyriHaximus\Ratchet\Security\WampCraAuthProvider;
 use WyriHaximus\Ratchet\Websocket\InternalClient;
+use WyriHaximus\React\Http\Middleware\WebrootPreloadMiddleware;
+use WyriHaximus\React\Http\PSR15MiddlewareGroup\Factory;
 
 final class ConstructListener implements EventListenerInterface
 {

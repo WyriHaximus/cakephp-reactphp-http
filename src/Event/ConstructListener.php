@@ -15,6 +15,7 @@ use App\Application;
 use Cake\Http\Server;
 use Cake\Http\ServerRequest;
 use Cake\Http\ServerRequestFactory;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use React\Http\StreamingServer as HttpServer;
 use function React\Promise\resolve;

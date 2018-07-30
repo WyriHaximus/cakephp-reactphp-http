@@ -7,4 +7,4 @@ use WyriHaximus\React\Cake\Http\Event\ConstructListener;
 EventManager::instance()->on(new ConstructListener());
 
 
-Configure::load('WyriHaximus.HttpServer', 'factories');
+Configure::load('WyriHaximus/React/Cake/Http.factories', 'default');

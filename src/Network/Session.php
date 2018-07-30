@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace WyriHaximus\React\Cake\Http;
+namespace WyriHaximus\React\Cake\Http\Network;
 
 use Cake\Utility\Hash;
 use WyriHaximus\React\Http\Middleware\Session as MiddlewareSession;

@@ -21,6 +21,7 @@
     "phpdocumentor/reflection-docblock": "^4.0 || ^3.0 || ^2.0",
     "react/http": "^0.8.3",
     "roave/better-reflection": "^2.0",
+    "wyrihaximus/json-psr7": "^1.0",
     "wyrihaximus/psr-3-callable-throwable-logger": "^1.0",
     "wyrihaximus/psr-3-context-logger": "^1.0",
     "wyrihaximus/react-child-process-pool": "^1.3",

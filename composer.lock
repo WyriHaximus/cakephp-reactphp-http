@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "965943c630ce966f73d0fbed259e108e",
+    "content-hash": "f4fb8091e60c549a04b7ed5b34611158",
     "packages": [
         {
             "name": "api-clients/cs-fixer-config",
@@ -7224,14 +7224,7 @@
             "time": "2017-04-07T12:08:54+00:00"
         }
     ],
-    "aliases": [
-        {
-            "alias": "1.1.1",
-            "alias_normalized": "1.1.1.0",
-            "version": "dev-to-from-array",
-            "package": "wyrihaximus/react-http-middleware-session"
-        }
-    ],
+    "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
         "api-clients/cs-fixer-config": 20,

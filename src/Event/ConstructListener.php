@@ -13,6 +13,7 @@ namespace WyriHaximus\React\Cake\Http\Event;
 
 use App\Application;
 use Cake\Cache\Cache;
+use Cake\Collection\Collection;
 use Cake\Core\App;
 use Cake\Datasource\ConnectionManager;
 use Cake\Http\Server;
@@ -48,6 +49,8 @@ use WyriHaximus\React\ChildProcess\Pool\PoolInterface;
 use WyriHaximus\React\Http\Middleware\SessionMiddleware;
 use WyriHaximus\React\Http\Middleware\WebrootPreloadMiddleware;
 use WyriHaximus\React\Http\PSR15MiddlewareGroup\Factory;
+use function WyriHaximus\toChildProcessOrNotToChildProcess;
+use function WyriHaximus\toCoroutineOrNotToCoroutine;
 
 final class ConstructListener implements EventListenerInterface
 {
@@ -129,18 +132,23 @@ final class ConstructListener implements EventListenerInterface
             $astLocator = (new BetterReflection())->astLocator();
             $reflector = new ClassReflector(new SingleFileSourceLocator($fileName, $astLocator));
 
-
             foreach ($reflector->getAllClasses() as $class) {
-                var_export([$class->getShortName() => $route['controller'] . 'Controller']);
                 if ($class->getShortName() !== $route['controller'] . 'Controller') {
                     continue;
                 }
 
-                $reader = new AnnotationReader();
-                $annotations = $reader->getMethodAnnotations(new \ReflectionMethod($class->getName() . '::' . $route['action']));
-                var_export($class->getName() . '::' . $route['action']);
-                var_export($annotations);
+                $requestHandler = $class->getName() . '::' . $route['action'];
+                $annotationReader = new AnnotationReader();
+                if (toChildProcessOrNotToChildProcess($requestHandler, $annotationReader)) {
+                    return $this->handRequestInChildProcess($request, $childProcessPool);
+                }
+
+                $request = $request->withAttribute('coroutine', toCoroutineOrNotToCoroutine($requestHandler, $annotationReader));
+
+                break;
             }
+
+            break;
         }
 
         return $this->requestExecutionFunction()($request);
@@ -200,7 +208,7 @@ final class ConstructListener implements EventListenerInterface
             $environment = ServerRequestFactory::normalizeServer($request->getServerParams() + ['REQUEST_URI' => $request->getUri()->getPath()]);
             $uri = ServerRequestFactory::createUri($environment);
 
-            //$session = new Session($request->getAttribute(SessionMiddleware::ATTRIBUTE_NAME));
+            $session = new Session($request->getAttribute(SessionMiddleware::ATTRIBUTE_NAME));
 
             $sr = new ServerRequest([
                 'environment' => $environment,
@@ -211,7 +219,7 @@ final class ConstructListener implements EventListenerInterface
                 'post' => (array)$request->getParsedBody(),
                 'webroot' => $uri->webroot,
                 'base' => $uri->base,
-                //'session' => $session,
+                'session' => $session,
             ]);
 
             /** @var ResponseInterface $response */

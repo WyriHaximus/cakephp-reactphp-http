@@ -12,19 +12,39 @@
 namespace WyriHaximus\React\Cake\Http\Event;
 
 use App\Application;
+use Cake\Cache\Cache;
+use Cake\Core\App;
+use Cake\Datasource\ConnectionManager;
 use Cake\Http\Server;
 use Cake\Http\ServerRequest;
 use Cake\Http\ServerRequestFactory;
+use Cake\Routing\Router;
+use Doctrine\Common\Annotations\AnnotationReader;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use React\Http\StreamingServer as HttpServer;
+use React\Promise\PromiseInterface;
 use function React\Promise\resolve;
 use React\Socket\Server as SocketServer;
 use Cake\Core\Configure;
 use Cake\Event\EventListenerInterface;
+use function RingCentral\Psr7\stream_for;
+use Roave\BetterReflection\BetterReflection;
+use Roave\BetterReflection\Reflector\ClassReflector;
+use Roave\BetterReflection\SourceLocator\Type\SingleFileSourceLocator;
 use WyriHaximus\PSR3\CallableThrowableLogger\CallableThrowableLogger;
 use WyriHaximus\PSR3\ContextLogger\ContextLogger;
+use function WyriHaximus\psr7_response_decode;
+use function WyriHaximus\psr7_response_encode;
+use function WyriHaximus\psr7_server_request_decode;
+use function WyriHaximus\psr7_server_request_encode;
 use WyriHaximus\React\Cake\Http\Network\Session;
+use WyriHaximus\React\ChildProcess\Closure\ClosureChild;
+use WyriHaximus\React\ChildProcess\Closure\MessageFactory;
+use WyriHaximus\React\ChildProcess\Messenger\Messages\Payload;
+use WyriHaximus\React\ChildProcess\Pool\Factory\Flexible;
+use WyriHaximus\React\ChildProcess\Pool\Options;
+use WyriHaximus\React\ChildProcess\Pool\PoolInterface;
 use WyriHaximus\React\Http\Middleware\SessionMiddleware;
 use WyriHaximus\React\Http\Middleware\WebrootPreloadMiddleware;
 use WyriHaximus\React\Http\PSR15MiddlewareGroup\Factory;
@@ -47,6 +67,17 @@ final class ConstructListener implements EventListenerInterface
     public function construct(ConstructEvent $event)
     {
         $loop = $event->getLoop();
+
+        $childProcessPool = Flexible::createFromClass(
+            ClosureChild::class,
+            $loop,
+            [
+                Options::TTL      => 1,
+                Options::MIN_SIZE => 0,
+                Options::MAX_SIZE => 5,
+            ]
+        );
+
         $logger = new ContextLogger(
             $event->getLogger(),
             [
@@ -72,8 +103,8 @@ final class ConstructListener implements EventListenerInterface
             array_push($middleware, ...Configure::read('WyriHaximus.HttpServer.middleware.suffix'));
         }
 
-        $middleware[] = function (ServerRequestInterface $request) {
-            return $this->handlerRequest($request);
+        $middleware[] = function (ServerRequestInterface $request) use ($childProcessPool) {
+            return $this->handleRequest($request, $childProcessPool);
         };
 
         $socket = new SocketServer(Configure::read('WyriHaximus.HttpServer.address'), $loop);
@@ -85,42 +116,108 @@ final class ConstructListener implements EventListenerInterface
         $http->on('error', CallableThrowableLogger::create($logger));
     }
 
-    private function handlerRequest(ServerRequestInterface $request)
+    private function handleRequest(ServerRequestInterface $request, PromiseInterface $childProcessPool)
     {
-        parse_str($request->getUri()->getQuery(), $query);
+        $route = Router::parseRequest($request);
+        var_export($route);
+        foreach (App::path('Controller', $route['plugin']) as $path) {
+            $fileName = $path . $route['controller'] . 'Controller.php';
+            if (!file_exists($fileName)) {
+                continue;
+            }
 
-        $applicationFactory = Configure::read('WyriHaximus.HttpServer.factories.application');
-        /** @var Application $application */
-        $application = $applicationFactory();
-        $server = new Server($application);
+            $astLocator = (new BetterReflection())->astLocator();
+            $reflector = new ClassReflector(new SingleFileSourceLocator($fileName, $astLocator));
 
-        $environment = ServerRequestFactory::normalizeServer($request->getServerParams() + ['REQUEST_URI' => $request->getUri()->getPath()]);
-        $uri = ServerRequestFactory::createUri($environment);
 
-        $session = new Session($request->getAttribute(SessionMiddleware::ATTRIBUTE_NAME));
+            foreach ($reflector->getAllClasses() as $class) {
+                var_export([$class->getShortName() => $route['controller'] . 'Controller']);
+                if ($class->getShortName() !== $route['controller'] . 'Controller') {
+                    continue;
+                }
 
-        $sr = new ServerRequest([
-            'environment' => $environment,
-            'uri' => $uri,
-            'files' => $request->getUploadedFiles(),
-            'cookies' => $request->getCookieParams(),
-            'query' => $query,
-            'post' => (array)$request->getParsedBody(),
-            'webroot' => $uri->webroot,
-            'base' => $uri->base,
-            'session' => $session,
-        ]);
-
-        /** @var ResponseInterface $response */
-        $response = $server->run($sr);
-        if (method_exists($response, 'getPromise')) {
-            return resolve($response->getPromise());
+                $reader = new AnnotationReader();
+                $annotations = $reader->getMethodAnnotations(new \ReflectionMethod($class->getName() . '::' . $route['action']));
+                var_export($class->getName() . '::' . $route['action']);
+                var_export($annotations);
+            }
         }
 
-        return resolve($response)->always(function () use ($session) {
-            if ($session->read() === [] || $session->read() === null) {
-                $session->destroy();
-            }
+        return $this->requestExecutionFunction()($request);
+
+        //return $this->handRequestInChildProcess($request, $childProcessPool);
+    }
+
+    private function handRequestInChildProcess(ServerRequestInterface $request, PromiseInterface $childProcessPool)
+    {
+        $jsonRequest = psr7_server_request_encode($request);
+        $rpc = MessageFactory::rpc($this->childProcessFunction($jsonRequest));
+
+        return $childProcessPool->then(function (PoolInterface $pool) use ($rpc) {
+            return $pool->rpc($rpc);
+        })->then(function (Payload $payload) {
+            $response = $payload->getPayload();
+            return psr7_response_decode($response);
         });
+    }
+
+    private function childProcessFunction(array $request)
+    {
+        $root = dirname(dirname(dirname(dirname(dirname(__DIR__)))));
+        $handler = $this->requestExecutionFunction();
+
+        return function () use ($root, $request, $handler) {
+            $request = psr7_server_request_decode($request);
+
+            require $root . '/config/paths.php';
+            require CORE_PATH . 'config' . DS . 'bootstrap.php';
+
+            $response = $handler($request);
+
+            return psr7_response_encode($response);
+
+            /*if (method_exists($response, 'getPromise')) {
+                return resolve($response->getPromise());
+            }
+
+            return resolve($response)->always(function () use ($session) {
+                if ($session->read() === [] || $session->read() === null) {
+                    $session->destroy();
+                }
+            });*/
+        };
+    }
+
+    private function requestExecutionFunction()
+    {
+        return function (ServerRequestInterface $request) {
+            parse_str($request->getUri()->getQuery(), $query);
+
+            $serverFactory = Configure::read('WyriHaximus.HttpServer.factories.server');
+            /** @var Server $application */
+            $server = $serverFactory();
+
+            $environment = ServerRequestFactory::normalizeServer($request->getServerParams() + ['REQUEST_URI' => $request->getUri()->getPath()]);
+            $uri = ServerRequestFactory::createUri($environment);
+
+            //$session = new Session($request->getAttribute(SessionMiddleware::ATTRIBUTE_NAME));
+
+            $sr = new ServerRequest([
+                'environment' => $environment,
+                'uri' => $uri,
+                'files' => $request->getUploadedFiles(),
+                'cookies' => $request->getCookieParams(),
+                'query' => $query,
+                'post' => (array)$request->getParsedBody(),
+                'webroot' => $uri->webroot,
+                'base' => $uri->base,
+                //'session' => $session,
+            ]);
+
+            /** @var ResponseInterface $response */
+            $response = $server->run($sr);
+            $response = $response->withBody(stream_for($response->body()));
+            return $response;
+        };
     }
 }

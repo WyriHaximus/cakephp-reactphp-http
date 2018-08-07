@@ -46,6 +46,7 @@ use WyriHaximus\React\ChildProcess\Messenger\Messages\Payload;
 use WyriHaximus\React\ChildProcess\Pool\Factory\Flexible;
 use WyriHaximus\React\ChildProcess\Pool\Options;
 use WyriHaximus\React\ChildProcess\Pool\PoolInterface;
+use WyriHaximus\React\Http\Middleware\SessionId\RandomBytes;
 use WyriHaximus\React\Http\Middleware\SessionMiddleware;
 use WyriHaximus\React\Http\Middleware\WebrootPreloadMiddleware;
 use WyriHaximus\React\Http\PSR15MiddlewareGroup\Factory;
@@ -107,7 +108,19 @@ final class ConstructListener implements EventListenerInterface
         }
 
         $middleware[] = function (ServerRequestInterface $request) use ($childProcessPool) {
-            return $this->handleRequest($request, $childProcessPool);
+            $session = $request->getAttribute(SessionMiddleware::ATTRIBUTE_NAME);
+
+            $response = $this->handleRequest($request, $childProcessPool);
+
+            if (method_exists($response, 'getPromise')) {
+                return resolve($response->getPromise());
+            }
+
+            return resolve($response)->always(function () use ($session) {
+                if ($session->read() === [] || $session->read() === null) {
+                    $session->destroy();
+                }
+            });
         };
 
         $socket = new SocketServer(Configure::read('WyriHaximus.HttpServer.address'), $loop);
@@ -122,7 +135,6 @@ final class ConstructListener implements EventListenerInterface
     private function handleRequest(ServerRequestInterface $request, PromiseInterface $childProcessPool)
     {
         $route = Router::parseRequest($request);
-        var_export($route);
         foreach (App::path('Controller', $route['plugin']) as $path) {
             $fileName = $path . $route['controller'] . 'Controller.php';
             if (!file_exists($fileName)) {
@@ -144,7 +156,6 @@ final class ConstructListener implements EventListenerInterface
                 }
 
                 $request = $request->withAttribute('coroutine', toCoroutineOrNotToCoroutine($requestHandler, $annotationReader));
-
                 break;
             }
 
@@ -158,6 +169,11 @@ final class ConstructListener implements EventListenerInterface
 
     private function handRequestInChildProcess(ServerRequestInterface $request, PromiseInterface $childProcessPool)
     {
+        if ($request->getAttribute(SessionMiddleware::ATTRIBUTE_NAME, false) !== false) {
+            $session = $request->getAttribute(SessionMiddleware::ATTRIBUTE_NAME);
+            $request = $request->withAttribute(SessionMiddleware::ATTRIBUTE_NAME, $session->toArray());
+        }
+
         $jsonRequest = psr7_server_request_encode($request);
         $rpc = MessageFactory::rpc($this->childProcessFunction($jsonRequest));
 
@@ -177,22 +193,23 @@ final class ConstructListener implements EventListenerInterface
         return function () use ($root, $request, $handler) {
             $request = psr7_server_request_decode($request);
 
+            if ($request->getAttribute(SessionMiddleware::ATTRIBUTE_NAME, false) !== false) {
+                $serializedSession = $request->getAttribute(SessionMiddleware::ATTRIBUTE_NAME);
+                $request = $request->withAttribute(
+                    SessionMiddleware::ATTRIBUTE_NAME,
+                    (new \WyriHaximus\React\Http\Middleware\Session('', [], new RandomBytes()))->fromArray(
+                        $serializedSession
+                    )
+                );
+            }
+
             require $root . '/config/paths.php';
             require CORE_PATH . 'config' . DS . 'bootstrap.php';
 
             $response = $handler($request);
+            $response = $response->withBody(stream_for($response->body()));
 
             return psr7_response_encode($response);
-
-            /*if (method_exists($response, 'getPromise')) {
-                return resolve($response->getPromise());
-            }
-
-            return resolve($response)->always(function () use ($session) {
-                if ($session->read() === [] || $session->read() === null) {
-                    $session->destroy();
-                }
-            });*/
         };
     }
 
@@ -223,9 +240,7 @@ final class ConstructListener implements EventListenerInterface
             ]);
 
             /** @var ResponseInterface $response */
-            $response = $server->run($sr);
-            $response = $response->withBody(stream_for($response->body()));
-            return $response;
+            return $server->run($sr);
         };
     }
 }

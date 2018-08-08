@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "f4fb8091e60c549a04b7ed5b34611158",
+    "content-hash": "4d4cef7ecbf6f849b19a758754b9054d",
     "packages": [
         {
             "name": "api-clients/cs-fixer-config",
@@ -4646,16 +4646,16 @@
         },
         {
             "name": "wyrihaximus/react-http-middleware-session",
-            "version": "dev-to-from-array",
+            "version": "1.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/WyriHaximus/reactphp-http-middleware-session.git",
-                "reference": "021ecf009d65881ade8360bf05c403c36f82eb36"
+                "reference": "620f80475ebb96fe5e446bdee29a8002c310f01b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WyriHaximus/reactphp-http-middleware-session/zipball/021ecf009d65881ade8360bf05c403c36f82eb36",
-                "reference": "021ecf009d65881ade8360bf05c403c36f82eb36",
+                "url": "https://api.github.com/repos/WyriHaximus/reactphp-http-middleware-session/zipball/620f80475ebb96fe5e446bdee29a8002c310f01b",
+                "reference": "620f80475ebb96fe5e446bdee29a8002c310f01b",
                 "shasum": ""
             },
             "require": {
@@ -4687,7 +4687,7 @@
                 }
             ],
             "description": "react/http middleware that takes care of session handling",
-            "time": "2018-08-06T18:24:08+00:00"
+            "time": "2018-08-08T07:09:33+00:00"
         },
         {
             "name": "wyrihaximus/react-http-middleware-webroot-preload",
@@ -7228,7 +7228,6 @@
     "minimum-stability": "dev",
     "stability-flags": {
         "api-clients/cs-fixer-config": 20,
-        "wyrihaximus/react-http-middleware-session": 20,
         "wyrihaximus/to-child-process-or-not-to-child-process": 20,
         "wyrihaximus/to-coroutine-or-not-to-coroutine": 20
     },

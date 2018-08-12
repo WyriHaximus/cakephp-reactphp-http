@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "4d4cef7ecbf6f849b19a758754b9054d",
+    "content-hash": "9d850fd05c5611a84c8b73c757581eb7",
     "packages": [
         {
             "name": "api-clients/cs-fixer-config",
@@ -4646,16 +4646,16 @@
         },
         {
             "name": "wyrihaximus/react-http-middleware-session",
-            "version": "1.1.0",
+            "version": "1.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/WyriHaximus/reactphp-http-middleware-session.git",
-                "reference": "620f80475ebb96fe5e446bdee29a8002c310f01b"
+                "reference": "54d1ba801cdb85a77acc3816cf2f054ac4ff306e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WyriHaximus/reactphp-http-middleware-session/zipball/620f80475ebb96fe5e446bdee29a8002c310f01b",
-                "reference": "620f80475ebb96fe5e446bdee29a8002c310f01b",
+                "url": "https://api.github.com/repos/WyriHaximus/reactphp-http-middleware-session/zipball/54d1ba801cdb85a77acc3816cf2f054ac4ff306e",
+                "reference": "54d1ba801cdb85a77acc3816cf2f054ac4ff306e",
                 "shasum": ""
             },
             "require": {
@@ -4687,7 +4687,7 @@
                 }
             ],
             "description": "react/http middleware that takes care of session handling",
-            "time": "2018-08-08T07:09:33+00:00"
+            "time": "2018-08-12T10:49:57+00:00"
         },
         {
             "name": "wyrihaximus/react-http-middleware-webroot-preload",

@@ -12,10 +12,9 @@
 namespace WyriHaximus\React\Cake\Http\Event;
 
 use App\Application;
-use Cake\Cache\Cache;
-use Cake\Collection\Collection;
 use Cake\Core\App;
-use Cake\Datasource\ConnectionManager;
+use Cake\Core\Configure;
+use Cake\Event\EventListenerInterface;
 use Cake\Http\Server;
 use Cake\Http\ServerRequest;
 use Cake\Http\ServerRequestFactory;
@@ -23,22 +22,14 @@ use Cake\Routing\Router;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use React\EventLoop\LoopInterface;
 use React\Http\StreamingServer as HttpServer;
-use React\Promise\PromiseInterface;
-use function React\Promise\resolve;
 use React\Socket\Server as SocketServer;
-use Cake\Core\Configure;
-use Cake\Event\EventListenerInterface;
-use function RingCentral\Psr7\stream_for;
 use Roave\BetterReflection\BetterReflection;
 use Roave\BetterReflection\Reflector\ClassReflector;
 use Roave\BetterReflection\SourceLocator\Type\SingleFileSourceLocator;
 use WyriHaximus\PSR3\CallableThrowableLogger\CallableThrowableLogger;
 use WyriHaximus\PSR3\ContextLogger\ContextLogger;
-use function WyriHaximus\psr7_response_decode;
-use function WyriHaximus\psr7_response_encode;
-use function WyriHaximus\psr7_server_request_decode;
-use function WyriHaximus\psr7_server_request_encode;
 use WyriHaximus\React\Cake\Http\Network\Session;
 use WyriHaximus\React\ChildProcess\Closure\ClosureChild;
 use WyriHaximus\React\ChildProcess\Closure\MessageFactory;
@@ -50,11 +41,28 @@ use WyriHaximus\React\Http\Middleware\SessionId\RandomBytes;
 use WyriHaximus\React\Http\Middleware\SessionMiddleware;
 use WyriHaximus\React\Http\Middleware\WebrootPreloadMiddleware;
 use WyriHaximus\React\Http\PSR15MiddlewareGroup\Factory;
+use function React\Promise\resolve;
+use function RingCentral\Psr7\stream_for;
+use function WyriHaximus\psr7_response_decode;
+use function WyriHaximus\psr7_response_encode;
+use function WyriHaximus\psr7_server_request_decode;
+use function WyriHaximus\psr7_server_request_encode;
+use function WyriHaximus\React\tickingFuturePromise;
 use function WyriHaximus\toChildProcessOrNotToChildProcess;
 use function WyriHaximus\toCoroutineOrNotToCoroutine;
 
 final class ConstructListener implements EventListenerInterface
 {
+    /**
+     * @var LoopInterface
+     */
+    private $loop;
+
+    /**
+     * @var PoolInterface
+     */
+    private $pool;
+
     /**
      * @return array
      */
@@ -70,17 +78,19 @@ final class ConstructListener implements EventListenerInterface
      */
     public function construct(ConstructEvent $event)
     {
-        $loop = $event->getLoop();
+        $this->loop = $event->getLoop();
 
-        $childProcessPool = Flexible::createFromClass(
+        Flexible::createFromClass(
             ClosureChild::class,
-            $loop,
+            $this->loop,
             [
                 Options::TTL      => 1,
                 Options::MIN_SIZE => 0,
                 Options::MAX_SIZE => 5,
             ]
-        );
+        )->done(function (PoolInterface $pool) {
+            $this->pool = $pool;
+        });
 
         $logger = new ContextLogger(
             $event->getLogger(),
@@ -97,7 +107,7 @@ final class ConstructListener implements EventListenerInterface
             array_push($middleware, ...Configure::read('WyriHaximus.HttpServer.middleware.prefix'));
         }
 
-        $middleware[] = Factory::create($loop, $logger);
+        $middleware[] = Factory::create($this->loop, $logger);
         $middleware[] = new WebrootPreloadMiddleware(
             WWW_ROOT,
             new ContextLogger($logger, ['section' => 'webroot'], 'webroot')
@@ -107,8 +117,8 @@ final class ConstructListener implements EventListenerInterface
             array_push($middleware, ...Configure::read('WyriHaximus.HttpServer.middleware.suffix'));
         }
 
-        $middleware[] = function (ServerRequestInterface $request) use ($childProcessPool) {
-            $response = $this->handleRequest($request, $childProcessPool);
+        $middleware[] = function (ServerRequestInterface $request) {
+            $response = $this->handleRequest($request);
 
             if (method_exists($response, 'getPromise')) {
                 return resolve($response->getPromise());
@@ -117,7 +127,7 @@ final class ConstructListener implements EventListenerInterface
             return $response;
         };
 
-        $socket = new SocketServer(Configure::read('WyriHaximus.HttpServer.address'), $loop);
+        $socket = new SocketServer(Configure::read('WyriHaximus.HttpServer.address'), $this->loop);
         $http = new HttpServer($middleware);
         $http->listen($socket);
         $http->on('error', function ($error) {
@@ -126,12 +136,12 @@ final class ConstructListener implements EventListenerInterface
         $http->on('error', CallableThrowableLogger::create($logger));
     }
 
-    private function handleRequest(ServerRequestInterface $request, PromiseInterface $childProcessPool)
+    private function handleRequest(ServerRequestInterface $request)
     {
         $route = Router::parseRequest($request);
 
         if (isset($route['child-process']) && $route['child-process'] === true) {
-            return $this->handRequestInChildProcess($request, $childProcessPool);
+            return $this->handRequestInChildProcess($request);
         }
 
         foreach (App::path('Controller', $route['plugin']) as $path) {
@@ -151,7 +161,7 @@ final class ConstructListener implements EventListenerInterface
                 $requestHandler = $class->getName() . '::' . $route['action'];
                 $annotationReader = new AnnotationReader();
                 if (toChildProcessOrNotToChildProcess($requestHandler, $annotationReader)) {
-                    return $this->handRequestInChildProcess($request, $childProcessPool);
+                    return $this->handRequestInChildProcess($request);
                 }
 
                 $request = $request->withAttribute('coroutine', toCoroutineOrNotToCoroutine($requestHandler, $annotationReader));
@@ -164,23 +174,31 @@ final class ConstructListener implements EventListenerInterface
         return $this->requestExecutionFunction()($request);
     }
 
-    private function handRequestInChildProcess(ServerRequestInterface $request, PromiseInterface $childProcessPool)
+    private function handRequestInChildProcess(ServerRequestInterface $request)
     {
-        if ($request->getAttribute(SessionMiddleware::ATTRIBUTE_NAME, false) !== false) {
-            $session = $request->getAttribute(SessionMiddleware::ATTRIBUTE_NAME);
-            $request = $request->withAttribute(SessionMiddleware::ATTRIBUTE_NAME, $session->toArray());
+        $func = function (PoolInterface $pool) use ($request) {
+            if ($request->getAttribute(SessionMiddleware::ATTRIBUTE_NAME, false) !== false) {
+                $session = $request->getAttribute(SessionMiddleware::ATTRIBUTE_NAME);
+                $request = $request->withAttribute(SessionMiddleware::ATTRIBUTE_NAME, $session->toArray());
+            }
+
+            $jsonRequest = psr7_server_request_encode($request);
+            $rpc = MessageFactory::rpc($this->childProcessFunction($jsonRequest));
+
+            return $this->pool->rpc($rpc)->then(function (Payload $payload) use ($session) {
+                $response = $payload->getPayload();
+                $session->fromArray($response['session'], false);
+                return psr7_response_decode($response['response']);
+            });
+        };
+
+        if ($this->pool instanceof PoolInterface) {
+            return $func($this->pool);
         }
 
-        $jsonRequest = psr7_server_request_encode($request);
-        $rpc = MessageFactory::rpc($this->childProcessFunction($jsonRequest));
-
-        return $childProcessPool->then(function (PoolInterface $pool) use ($rpc) {
-            return $pool->rpc($rpc);
-        })->then(function (Payload $payload) use ($session) {
-            $response = $payload->getPayload();
-            $session->fromArray($response['session'], false);
-            return psr7_response_decode($response['response']);
-        });
+        return tickingFuturePromise($this->loop, function () {
+            return $this->pool instanceof PoolInterface;
+        })->then($func);
     }
 
     private function childProcessFunction(array $request)
@@ -217,7 +235,7 @@ final class ConstructListener implements EventListenerInterface
 
     private function requestExecutionFunction()
     {
-        return function (ServerRequestInterface $request) {
+        return static function (ServerRequestInterface $request) {
             parse_str($request->getUri()->getQuery(), $query);
 
             $serverFactory = Configure::read('WyriHaximus.HttpServer.factories.server');

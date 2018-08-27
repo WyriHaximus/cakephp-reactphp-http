@@ -258,6 +258,9 @@ final class ConstructListener implements EventListenerInterface
                 'base' => $uri->base,
                 'session' => $session,
             ]);
+            foreach ($request->getAttributes() as $key => $value) {
+                $sr = $sr->withAttribute($key, $value);
+            }
 
             /** @var ResponseInterface $response */
             $response = $server->run($sr);

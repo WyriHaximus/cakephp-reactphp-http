@@ -18,6 +18,7 @@ use React\EventLoop\LoopInterface;
 use Recoil\React\ReactKernel;
 use WyriHaximus\Cake\DI\Annotations\Inject;
 use WyriHaximus\React\Cake\Http\Http\PromiseResponse;
+use WyriHaximus\Recoil\Call;
 use WyriHaximus\Recoil\FiniteCaller;
 use WyriHaximus\Recoil\QueueCallerInterface;
 

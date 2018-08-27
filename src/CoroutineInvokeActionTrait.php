@@ -15,6 +15,7 @@ use function ApiClients\Tools\Rx\observableFromArray;
 use Cake\Controller\Exception\MissingActionException;
 use LogicException;
 use React\EventLoop\LoopInterface;
+use React\Promise\Promise;
 use Recoil\React\ReactKernel;
 use WyriHaximus\Cake\DI\Annotations\Inject;
 use WyriHaximus\React\Cake\Http\Http\PromiseResponse;

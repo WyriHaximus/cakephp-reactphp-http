@@ -17,13 +17,13 @@ class ConstructEvent extends Event
      * @param LoggerInterface $logger
      * @return static
      */
-    public static function create(LoopInterface $loop, EventManager $eventManager, LoggerInterface $logger)
+    public static function create(LoopInterface $loop, EventManager $eventManager, LoggerInterface $logger, array $data = [])
     {
         return new static(static::EVENT, $loop, [
             'loop' => $loop,
             'eventManager' => $eventManager,
             'logger' => $logger,
-        ]);
+        ] + $data);
     }
 
     public function getLoop(): LoopInterface

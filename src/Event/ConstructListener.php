@@ -47,6 +47,7 @@ use function WyriHaximus\psr7_response_decode;
 use function WyriHaximus\psr7_response_encode;
 use function WyriHaximus\psr7_server_request_decode;
 use function WyriHaximus\psr7_server_request_encode;
+use WyriHaximus\React\Inspector\ChildProcessPools\ChildProcessPoolsCollector;
 use function WyriHaximus\React\tickingFuturePromise;
 use function WyriHaximus\toChildProcessOrNotToChildProcess;
 use function WyriHaximus\toCoroutineOrNotToCoroutine;
@@ -88,8 +89,12 @@ final class ConstructListener implements EventListenerInterface
                 Options::MIN_SIZE => 0,
                 Options::MAX_SIZE => 5,
             ]
-        )->done(function (PoolInterface $pool) {
+        )->done(function (PoolInterface $pool) use ($event) {
             $this->pool = $pool;
+            $data = $event->getData();
+            if (isset($data['cpc']) && $data['cpc'] instanceof ChildProcessPoolsCollector) {
+                $data['cpc']->register('http-server', $pool);
+            }
         });
 
         $logger = new ContextLogger(

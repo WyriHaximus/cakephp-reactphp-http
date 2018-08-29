@@ -11,7 +11,6 @@
 
 namespace WyriHaximus\React\Cake\Http;
 
-use function ApiClients\Tools\Rx\observableFromArray;
 use Cake\Controller\Exception\MissingActionException;
 use LogicException;
 use React\EventLoop\LoopInterface;
@@ -20,8 +19,9 @@ use Recoil\React\ReactKernel;
 use WyriHaximus\Cake\DI\Annotations\Inject;
 use WyriHaximus\React\Cake\Http\Http\PromiseResponse;
 use WyriHaximus\Recoil\Call;
-use WyriHaximus\Recoil\FiniteCaller;
+use WyriHaximus\Recoil\InfiniteCaller;
 use WyriHaximus\Recoil\QueueCallerInterface;
+use function ApiClients\Tools\Rx\observableFromArray;
 
 trait CoroutineInvokeActionTrait
 {
@@ -34,7 +34,7 @@ trait CoroutineInvokeActionTrait
      */
     public function setQueueCaller(LoopInterface $loop): void
     {
-        $this->queueCaller = new FiniteCaller(ReactKernel::create($loop), 13);
+        $this->queueCaller = new InfiniteCaller(ReactKernel::create($loop));
     }
 
     public function invokeAction()

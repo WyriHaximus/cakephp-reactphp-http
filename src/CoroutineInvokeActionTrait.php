@@ -15,6 +15,7 @@ use Cake\Controller\Exception\MissingActionException;
 use LogicException;
 use React\EventLoop\LoopInterface;
 use React\Promise\Promise;
+use function React\Promise\resolve;
 use Recoil\React\ReactKernel;
 use WyriHaximus\Cake\DI\Annotations\Inject;
 use WyriHaximus\React\Cake\Http\Http\PromiseResponse;
@@ -62,8 +63,18 @@ trait CoroutineInvokeActionTrait
         $call = new Call($callable, ...array_values($request->getParam('pass')));
         $this->queueCaller->call(observableFromArray([$call]));
 
-        return (new PromiseResponse())->setPromise(new Promise(function ($resolve, $reject) use ($call) {
+        return (new PromiseResponse())->setPromise((new Promise(function ($resolve, $reject) use ($call) {
             $call->wait($resolve, $reject);
+        }))->then(function ($response) {
+            if ($response !== null) {
+                return $response;
+            }
+
+            if ($this->isAutoRenderEnabled()) {
+                return $this->render();
+            }
+
+            return $response;
         }));
     }
 }

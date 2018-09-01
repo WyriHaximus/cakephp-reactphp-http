@@ -150,7 +150,7 @@ final class ConstructListener implements EventListenerInterface
         }
 
         foreach (App::path('Controller', $route['plugin']) as $path) {
-            $fileName = $path . $route['controller'] . 'Controller.php';
+            $fileName = str_replace('//', '/', $path . (isset($route['prefix']) ? $route['prefix'] . '/' : '') . $route['controller'] . 'Controller.php');
             if (!file_exists($fileName)) {
                 continue;
             }

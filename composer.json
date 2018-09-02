@@ -13,7 +13,7 @@
   ],
   "require": {
     "php": "^7.2",
-    "api-clients/cs-fixer-config": "dev-master",
+    "api-clients/cs-fixer-config": "^1.0",
     "cakephp/cakephp": "^3.0.0",
     "doctrine/annotations": "^1.2",
     "friendsofphp/php-cs-fixer": "^2.10",

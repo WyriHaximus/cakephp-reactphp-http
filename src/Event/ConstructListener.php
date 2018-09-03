@@ -22,6 +22,8 @@ use Cake\Routing\Router;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use React\Cache\ArrayCache;
+use React\Cache\CacheInterface;
 use React\EventLoop\LoopInterface;
 use React\Http\StreamingServer as HttpServer;
 use React\Socket\Server as SocketServer;
@@ -113,9 +115,19 @@ final class ConstructListener implements EventListenerInterface
         }
 
         $middleware[] = Factory::create($this->loop, $logger);
+
+        $cache = null;
+        if (Configure::check('WyriHaximus.HttpServer.middleware.preload.cache')) {
+            $cache = Configure::read('WyriHaximus.HttpServer.middleware.preload.cache');
+        }
+        if (!($cache instanceof CacheInterface)) {
+            $cache = new ArrayCache();
+        }
+
         $middleware[] = new WebrootPreloadMiddleware(
             WWW_ROOT,
-            new ContextLogger($logger, ['section' => 'webroot'], 'webroot')
+            new ContextLogger($logger, ['section' => 'webroot'], 'webroot'),
+            $cache
         );
 
         if (Configure::check('WyriHaximus.HttpServer.middleware.suffix')) {

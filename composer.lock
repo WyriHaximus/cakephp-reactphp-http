@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "e98d9460a45fc70933e023ab3603926a",
+    "content-hash": "2d085181274125dfbeb3b031a14cf663",
     "packages": [
         {
             "name": "api-clients/cs-fixer-config",
@@ -138,16 +138,16 @@
         },
         {
             "name": "cakephp/cakephp",
-            "version": "3.6.10",
+            "version": "3.6.11",
             "source": {
                 "type": "git",
                 "url": "https://github.com/cakephp/cakephp.git",
-                "reference": "abbb678b23de16d0e4d15367804d7ae741510842"
+                "reference": "ddbfcdb479cfaa59f6e8c3433bf85aa71bff492d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/cakephp/cakephp/zipball/abbb678b23de16d0e4d15367804d7ae741510842",
-                "reference": "abbb678b23de16d0e4d15367804d7ae741510842",
+                "url": "https://api.github.com/repos/cakephp/cakephp/zipball/ddbfcdb479cfaa59f6e8c3433bf85aa71bff492d",
+                "reference": "ddbfcdb479cfaa59f6e8c3433bf85aa71bff492d",
                 "shasum": ""
             },
             "require": {
@@ -220,7 +220,7 @@
                 "rapid-development",
                 "validation"
             ],
-            "time": "2018-08-05T01:44:02+00:00"
+            "time": "2018-09-03T01:33:56+00:00"
         },
         {
             "name": "cakephp/chronos",
@@ -343,16 +343,16 @@
         },
         {
             "name": "composer/xdebug-handler",
-            "version": "1.2.1",
+            "version": "1.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/composer/xdebug-handler.git",
-                "reference": "e37cbd80da64afe314c72de8d2d2fec0e40d9373"
+                "reference": "b8e9745fb9b06ea6664d8872c4505fb16df4611c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/composer/xdebug-handler/zipball/e37cbd80da64afe314c72de8d2d2fec0e40d9373",
-                "reference": "e37cbd80da64afe314c72de8d2d2fec0e40d9373",
+                "url": "https://api.github.com/repos/composer/xdebug-handler/zipball/b8e9745fb9b06ea6664d8872c4505fb16df4611c",
+                "reference": "b8e9745fb9b06ea6664d8872c4505fb16df4611c",
                 "shasum": ""
             },
             "require": {
@@ -383,7 +383,7 @@
                 "Xdebug",
                 "performance"
             ],
-            "time": "2018-08-23T12:00:19+00:00"
+            "time": "2018-08-31T19:07:57+00:00"
         },
         {
             "name": "daverandom/exceptional-json",
@@ -2508,16 +2508,16 @@
         },
         {
             "name": "react/cache",
-            "version": "v0.4.2",
+            "version": "v0.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp/cache.git",
-                "reference": "75494f26b4ef089db9bf8c90b63c296246e099e8"
+                "reference": "7d7da7fb7574d471904ba357b39bbf110ccdbf66"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/cache/zipball/75494f26b4ef089db9bf8c90b63c296246e099e8",
-                "reference": "75494f26b4ef089db9bf8c90b63c296246e099e8",
+                "url": "https://api.github.com/repos/reactphp/cache/zipball/7d7da7fb7574d471904ba357b39bbf110ccdbf66",
+                "reference": "7d7da7fb7574d471904ba357b39bbf110ccdbf66",
                 "shasum": ""
             },
             "require": {
@@ -2544,7 +2544,7 @@
                 "promise",
                 "reactphp"
             ],
-            "time": "2017-12-20T16:47:13+00:00"
+            "time": "2018-06-25T12:52:40+00:00"
         },
         {
             "name": "react/child-process",
@@ -4890,7 +4890,7 @@
             ],
             "authors": [
                 {
-                    "name": "Cees-jan Kiewiet",
+                    "name": "Cees-Jan Kiewiet",
                     "email": "ceesjank@gmail.com"
                 }
             ],
@@ -4947,23 +4947,23 @@
         },
         {
             "name": "wyrihaximus/react-http-middleware-session",
-            "version": "1.2.0",
+            "version": "2.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/WyriHaximus/reactphp-http-middleware-session.git",
-                "reference": "54d1ba801cdb85a77acc3816cf2f054ac4ff306e"
+                "reference": "d2675a96e08baa8ea6efafea5f0608b51dc4fc11"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WyriHaximus/reactphp-http-middleware-session/zipball/54d1ba801cdb85a77acc3816cf2f054ac4ff306e",
-                "reference": "54d1ba801cdb85a77acc3816cf2f054ac4ff306e",
+                "url": "https://api.github.com/repos/WyriHaximus/reactphp-http-middleware-session/zipball/d2675a96e08baa8ea6efafea5f0608b51dc4fc11",
+                "reference": "d2675a96e08baa8ea6efafea5f0608b51dc4fc11",
                 "shasum": ""
             },
             "require": {
                 "hansott/psr7-cookies": "^1.0",
-                "php": "^7.0",
+                "php": "^7.2",
                 "psr/http-message": "^1.0",
-                "react/cache": "^0.4.2",
+                "react/cache": "^0.5.0",
                 "react/http": "^0.8.0",
                 "react/promise": "^2.5"
             },
@@ -4988,32 +4988,33 @@
                 }
             ],
             "description": "react/http middleware that takes care of session handling",
-            "time": "2018-08-12T10:49:57+00:00"
+            "time": "2018-09-03T11:22:21+00:00"
         },
         {
             "name": "wyrihaximus/react-http-middleware-webroot-preload",
-            "version": "1.2.0",
+            "version": "1.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/WyriHaximus/reactphp-http-middleware-webroot-preload.git",
-                "reference": "46784121aaae31353f9c029fd292ac8b2230fcf2"
+                "reference": "676e51e08a1b05c3e59766b86f667c2de6c0a662"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WyriHaximus/reactphp-http-middleware-webroot-preload/zipball/46784121aaae31353f9c029fd292ac8b2230fcf2",
-                "reference": "46784121aaae31353f9c029fd292ac8b2230fcf2",
+                "url": "https://api.github.com/repos/WyriHaximus/reactphp-http-middleware-webroot-preload/zipball/676e51e08a1b05c3e59766b86f667c2de6c0a662",
+                "reference": "676e51e08a1b05c3e59766b86f667c2de6c0a662",
                 "shasum": ""
             },
             "require": {
                 "narrowspark/mimetypes": "^0.1.2",
-                "php": "^7.1",
+                "php": "^7.2",
                 "psr/http-message": "^1.0",
                 "psr/log": "^1.0",
+                "react/cache": "^0.5.0",
                 "react/http": "^0.8.0",
                 "scriptfusion/byte-formatter": "^3.2"
             },
             "require-dev": {
-                "api-clients/test-utilities": "^4.2",
+                "api-clients/test-utilities": "^5.1",
                 "brunty/cigar": "^1.8",
                 "psr/log": "^1.0",
                 "ringcentral/psr7": "^1.2"
@@ -5035,7 +5036,7 @@
                 }
             ],
             "description": "react/http middleware static webroot serving",
-            "time": "2018-03-17T21:21:29+00:00"
+            "time": "2018-09-02T20:14:48+00:00"
         },
         {
             "name": "wyrihaximus/react-http-psr-15-middleware-group",
@@ -6179,7 +6180,7 @@
                     "homepage": "http://blog.astrumfutura.com"
                 },
                 {
-                    "name": "Théo Fidry",
+                    "name": "Théo FIDRY",
                     "email": "theo.fidry@gmail.com"
                 }
             ],

@@ -19,6 +19,7 @@ use Cake\Http\Server;
 use Cake\Http\ServerRequest;
 use Cake\Http\ServerRequestFactory;
 use Cake\Routing\Router;
+use Cake\Utility\Inflector;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -162,7 +163,7 @@ final class ConstructListener implements EventListenerInterface
         }
 
         foreach (App::path('Controller', $route['plugin']) as $path) {
-            $fileName = str_replace('//', '/', $path . (isset($route['prefix']) ? $route['prefix'] . '/' : '') . $route['controller'] . 'Controller.php');
+            $fileName = str_replace('//', '/', $path . (isset($route['prefix']) ? Inflector::camelize($route['prefix']) . '/' : '') . $route['controller'] . 'Controller.php');
             if (!file_exists($fileName)) {
                 continue;
             }

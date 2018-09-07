@@ -57,15 +57,17 @@ use function WyriHaximus\toCoroutineOrNotToCoroutine;
 
 final class ConstructListener implements EventListenerInterface
 {
-    /**
-     * @var LoopInterface
-     */
+    /** @var LoopInterface */
     private $loop;
 
-    /**
-     * @var PoolInterface
-     */
+    /** @var PoolInterface */
     private $pool;
+
+    /** @var SocketServer */
+    private $socket;
+
+    /** @var HttpServer */
+    private $http;
 
     /**
      * @return array
@@ -74,6 +76,7 @@ final class ConstructListener implements EventListenerInterface
     {
         return [
             ConstructEvent::EVENT => 'construct',
+            DestructEvent::EVENT => 'destruct',
         ];
     }
 
@@ -145,13 +148,18 @@ final class ConstructListener implements EventListenerInterface
             return $response;
         };
 
-        $socket = new SocketServer(Configure::read('WyriHaximus.HttpServer.address'), $this->loop);
-        $http = new HttpServer($middleware);
-        $http->listen($socket);
-        $http->on('error', function ($error) {
+        $this->socket = new SocketServer(Configure::read('WyriHaximus.HttpServer.address'), $this->loop);
+        $this->http = new HttpServer($middleware);
+        $this->http->listen($this->socket);
+        $this->http->on('error', function ($error) {
             echo (string)$error;
         });
-        $http->on('error', CallableThrowableLogger::create($logger));
+        $this->http->on('error', CallableThrowableLogger::create($logger));
+    }
+
+    public function destruct(DestructEvent $event)
+    {
+        $this->socket->close();
     }
 
     private function handleRequest(ServerRequestInterface $request)

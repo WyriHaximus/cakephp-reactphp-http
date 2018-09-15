@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "2d085181274125dfbeb3b031a14cf663",
+    "content-hash": "b3be66185335976d537d44ba7f9397ec",
     "packages": [
         {
             "name": "api-clients/cs-fixer-config",
@@ -4992,16 +4992,16 @@
         },
         {
             "name": "wyrihaximus/react-http-middleware-webroot-preload",
-            "version": "1.3.0",
+            "version": "1.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/WyriHaximus/reactphp-http-middleware-webroot-preload.git",
-                "reference": "676e51e08a1b05c3e59766b86f667c2de6c0a662"
+                "reference": "66e37f0b96f23232bb9616bbbefdfcb969270d0f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WyriHaximus/reactphp-http-middleware-webroot-preload/zipball/676e51e08a1b05c3e59766b86f667c2de6c0a662",
-                "reference": "676e51e08a1b05c3e59766b86f667c2de6c0a662",
+                "url": "https://api.github.com/repos/WyriHaximus/reactphp-http-middleware-webroot-preload/zipball/66e37f0b96f23232bb9616bbbefdfcb969270d0f",
+                "reference": "66e37f0b96f23232bb9616bbbefdfcb969270d0f",
                 "shasum": ""
             },
             "require": {
@@ -5036,7 +5036,7 @@
                 }
             ],
             "description": "react/http middleware static webroot serving",
-            "time": "2018-09-02T20:14:48+00:00"
+            "time": "2018-09-12T20:30:19+00:00"
         },
         {
             "name": "wyrihaximus/react-http-psr-15-middleware-group",

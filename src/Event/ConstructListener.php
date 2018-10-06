@@ -21,6 +21,7 @@ use Cake\Http\ServerRequestFactory;
 use Cake\Routing\Router;
 use Cake\Utility\Inflector;
 use Doctrine\Common\Annotations\AnnotationReader;
+use Doctrine\Common\Annotations\CachedReader;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use React\Cache\ArrayCache;
@@ -30,6 +31,7 @@ use React\Http\StreamingServer as HttpServer;
 use React\Socket\Server as SocketServer;
 use Roave\BetterReflection\BetterReflection;
 use Roave\BetterReflection\Reflector\ClassReflector;
+use Roave\BetterReflection\SourceLocator\Ast\Locator;
 use Roave\BetterReflection\SourceLocator\Type\SingleFileSourceLocator;
 use WyriHaximus\PSR3\CallableThrowableLogger\CallableThrowableLogger;
 use WyriHaximus\PSR3\ContextLogger\ContextLogger;
@@ -68,6 +70,21 @@ final class ConstructListener implements EventListenerInterface
 
     /** @var HttpServer */
     private $http;
+
+    /** @var Locator */
+    private $astLocator;
+
+    /** @var AnnotationReader  */
+    private $annotationReader;
+
+    public function __construct()
+    {
+        $this->astLocator = (new BetterReflection())->astLocator();
+        $this->annotationReader = new CachedReader(
+            new AnnotationReader(),
+            new \Doctrine\Common\Cache\ArrayCache()
+        );
+    }
 
     /**
      * @return array
@@ -165,6 +182,7 @@ final class ConstructListener implements EventListenerInterface
     private function handleRequest(ServerRequestInterface $request)
     {
         $route = Router::parseRequest($request);
+        var_export($route);
 
         if (isset($route['child-process']) && $route['child-process'] === true) {
             return $this->handRequestInChildProcess($request);
@@ -176,21 +194,18 @@ final class ConstructListener implements EventListenerInterface
                 continue;
             }
 
-            $astLocator = (new BetterReflection())->astLocator();
-            $reflector = new ClassReflector(new SingleFileSourceLocator($fileName, $astLocator));
-
-            foreach ($reflector->getAllClasses() as $class) {
+            $refelector = new ClassReflector(new SingleFileSourceLocator($fileName, $this->astLocator));
+            foreach ($refelector->getAllClasses() as $class) {
                 if ($class->getShortName() !== $route['controller'] . 'Controller') {
                     continue;
                 }
 
                 $requestHandler = $class->getName() . '::' . $route['action'];
-                $annotationReader = new AnnotationReader();
-                if (toChildProcessOrNotToChildProcess($requestHandler, $annotationReader)) {
+                if (toChildProcessOrNotToChildProcess($requestHandler, $this->annotationReader)) {
                     return $this->handRequestInChildProcess($request);
                 }
 
-                $request = $request->withAttribute('coroutine', toCoroutineOrNotToCoroutine($requestHandler, $annotationReader));
+                $request = $request->withAttribute('coroutine', toCoroutineOrNotToCoroutine($requestHandler, $this->annotationReader));
                 break;
             }
 

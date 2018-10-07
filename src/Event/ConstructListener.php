@@ -98,7 +98,7 @@ final class ConstructListener implements EventListenerInterface
             new \Doctrine\Common\Cache\ArrayCache()
         );
 
-        foreach (Plugin::loaded() as $plugin) {
+        foreach (array_merge(Plugin::loaded(), [null]) as $plugin) {
             foreach (App::path('Controller', $plugin) as $path) {
                 if (!file_exists($path)) {
                     continue;
@@ -216,6 +216,7 @@ final class ConstructListener implements EventListenerInterface
         }
 
         $lookup = ($route['plugin'] !== null ? $route['plugin'] . '.' : '') . (isset($route['prefix']) ? Inflector::camelize($route['prefix']) . '\\' : '') . $route['controller'] . '::' . $route['action'];
+
         if (!isset($this->cache[$lookup])) {
             return $this->handRequestInChildProcess($request);
         }

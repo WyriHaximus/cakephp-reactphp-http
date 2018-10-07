@@ -14,6 +14,7 @@ namespace WyriHaximus\React\Cake\Http\Event;
 use App\Application;
 use Cake\Core\App;
 use Cake\Core\Configure;
+use Cake\Core\Plugin;
 use Cake\Event\EventListenerInterface;
 use Cake\Http\Server;
 use Cake\Http\ServerRequest;
@@ -71,20 +72,8 @@ final class ConstructListener implements EventListenerInterface
     /** @var HttpServer */
     private $http;
 
-    /** @var Locator */
-    private $astLocator;
-
-    /** @var AnnotationReader  */
-    private $annotationReader;
-
-    public function __construct()
-    {
-        $this->astLocator = (new BetterReflection())->astLocator();
-        $this->annotationReader = new CachedReader(
-            new AnnotationReader(),
-            new \Doctrine\Common\Cache\ArrayCache()
-        );
-    }
+    /** @var array  */
+    private $cache = [];
 
     /**
      * @return array
@@ -102,13 +91,52 @@ final class ConstructListener implements EventListenerInterface
      */
     public function construct(ConstructEvent $event)
     {
+
+        $astLocator = (new BetterReflection())->astLocator();
+        $annotationReader = new CachedReader(
+            new AnnotationReader(),
+            new \Doctrine\Common\Cache\ArrayCache()
+        );
+
+        foreach (Plugin::loaded() as $plugin) {
+            foreach (App::path('Controller', $plugin) as $path) {
+                if (!file_exists($path)) {
+                    continue;
+                }
+
+                foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path)) as $file) {
+                    $fileName = (string)$file;
+
+                    if (!file_exists($fileName) || !is_file($fileName)) {
+                        continue;
+                    }
+
+                    $refelector = new ClassReflector(new SingleFileSourceLocator($fileName, $astLocator));
+                    foreach ($refelector->getAllClasses() as $class) {
+                        /*if ($class->getShortName() !== $route['controller'] . 'Controller') {
+                            //continue;
+                        }*/
+
+                        foreach ($class->getImmediateMethods() as $method) {
+                            $requestHandler = $class->getName() . '::' . $method->getName();
+                            $this->cache[($plugin !== null ? $plugin . '.' : '') . substr(explode('\Controller\\', $class->getName())[1], 0, -10) . '::' . $method->getName()] = [
+                                'fqmn' => $requestHandler,
+                                'coroutine' => toCoroutineOrNotToCoroutine($requestHandler, $annotationReader),
+                                'child-process' => toChildProcessOrNotToChildProcess($requestHandler, $annotationReader),
+                            ];
+                        }
+                    }
+                }
+            }
+        }
+
         $this->loop = $event->getLoop();
 
         Flexible::createFromClass(
             ClosureChild::class,
             $this->loop,
             [
-                Options::TTL      => 1,
+                Options::TTL      => 4,
                 Options::MIN_SIZE => 0,
                 Options::MAX_SIZE => 5,
             ]
@@ -182,34 +210,22 @@ final class ConstructListener implements EventListenerInterface
     private function handleRequest(ServerRequestInterface $request)
     {
         $route = Router::parseRequest($request);
-        var_export($route);
 
         if (isset($route['child-process']) && $route['child-process'] === true) {
             return $this->handRequestInChildProcess($request);
         }
 
-        foreach (App::path('Controller', $route['plugin']) as $path) {
-            $fileName = str_replace('//', '/', $path . (isset($route['prefix']) ? Inflector::camelize($route['prefix']) . '/' : '') . $route['controller'] . 'Controller.php');
-            if (!file_exists($fileName)) {
-                continue;
-            }
+        $lookup = ($route['plugin'] !== null ? $route['plugin'] . '.' : '') . (isset($route['prefix']) ? Inflector::camelize($route['prefix']) . '\\' : '') . $route['controller'] . '::' . $route['action'];
+        if (!isset($this->cache[$lookup])) {
+            return $this->handRequestInChildProcess($request);
+        }
 
-            $refelector = new ClassReflector(new SingleFileSourceLocator($fileName, $this->astLocator));
-            foreach ($refelector->getAllClasses() as $class) {
-                if ($class->getShortName() !== $route['controller'] . 'Controller') {
-                    continue;
-                }
+        if ($this->cache[$lookup]['child-process'] === true) {
+            return $this->handRequestInChildProcess($request);
+        }
 
-                $requestHandler = $class->getName() . '::' . $route['action'];
-                if (toChildProcessOrNotToChildProcess($requestHandler, $this->annotationReader)) {
-                    return $this->handRequestInChildProcess($request);
-                }
-
-                $request = $request->withAttribute('coroutine', toCoroutineOrNotToCoroutine($requestHandler, $this->annotationReader));
-                break;
-            }
-
-            break;
+        if ($this->cache[$lookup]['coroutine'] === true) {
+            $request = $request->withAttribute('coroutine', true);
         }
 
         return $this->requestExecutionFunction()($request);

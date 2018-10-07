@@ -226,10 +226,10 @@ final class ConstructListener implements EventListenerInterface
         }
 
         if ($this->cache[$lookup]['coroutine'] === true) {
-            $request = $request->withAttribute('coroutine', true);
+            return $this->requestExecutionFunction()($request->withAttribute('coroutine', true));
         }
 
-        return $this->requestExecutionFunction()($request);
+        return $this->handRequestInChildProcess($request);
     }
 
     private function handRequestInChildProcess(ServerRequestInterface $request)

@@ -116,6 +116,9 @@ final class ConstructListener implements EventListenerInterface
                         /*if ($class->getShortName() !== $route['controller'] . 'Controller') {
                             //continue;
                         }*/
+                        if (strpos($class->getName(), '@') !== false) {
+                            continue;
+                        }
 
                         foreach ($class->getImmediateMethods() as $method) {
                             $requestHandler = $class->getName() . '::' . $method->getName();

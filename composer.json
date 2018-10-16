@@ -17,10 +17,10 @@
     "cakephp/cakephp": "^3.0.0",
     "doctrine/annotations": "^1.2",
     "friendsofphp/php-cs-fixer": "^2.10",
-    "nikic/php-parser": "^3.0 || ^2.0 || ^1.0",
+    "nikic/php-parser": "^4.0 || ^3.0 || ^2.0 || ^1.0",
     "phpdocumentor/reflection-docblock": "^4.0 || ^3.0 || ^2.0",
     "react/http": "^0.8.3",
-    "roave/better-reflection": "^2.0",
+    "roave/better-reflection": "^3.1",
     "wyrihaximus/json-psr7": "^1.0",
     "wyrihaximus/psr-3-callable-throwable-logger": "^1.0",
     "wyrihaximus/psr-3-context-logger": "^1.0",
@@ -34,7 +34,7 @@
     "wyrihaximus/to-coroutine-or-not-to-coroutine": "^1.0"
   },
   "require-dev": {
-    "api-clients/test-utilities": "^4.3",
+    "api-clients/test-utilities": "^5.1",
     "monolog/monolog": "^1.23"
   },
   "autoload": {

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "91acaa5abb51bcac6bc7c1a2ff71185a",
+    "content-hash": "2d82352dfe92611c6a17272ce140cf8e",
     "packages": [
         {
             "name": "api-clients/cs-fixer-config",
@@ -5084,16 +5084,16 @@
         },
         {
             "name": "wyrihaximus/recoil-queue-caller-pool",
-            "version": "dev-master",
+            "version": "1.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/WyriHaximus/recoilphp-queue-caller-pool.git",
-                "reference": "cbc473112be485d99b851e282ba27fd54a2dd5a3"
+                "reference": "362ca99fe643538f998a1bdb5d8f4d61d647030a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WyriHaximus/recoilphp-queue-caller-pool/zipball/cbc473112be485d99b851e282ba27fd54a2dd5a3",
-                "reference": "cbc473112be485d99b851e282ba27fd54a2dd5a3",
+                "url": "https://api.github.com/repos/WyriHaximus/recoilphp-queue-caller-pool/zipball/362ca99fe643538f998a1bdb5d8f4d61d647030a",
+                "reference": "362ca99fe643538f998a1bdb5d8f4d61d647030a",
                 "shasum": ""
             },
             "require": {
@@ -5125,7 +5125,7 @@
                 }
             ],
             "description": "Pool wyrihaximus/recoil-queue-caller",
-            "time": "2018-09-03T20:40:29+00:00"
+            "time": "2018-08-29T15:30:22+00:00"
         },
         {
             "name": "wyrihaximus/rx-recoil-looper",
@@ -7485,9 +7485,7 @@
     ],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": {
-        "wyrihaximus/recoil-queue-caller-pool": 20
-    },
+    "stability-flags": [],
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

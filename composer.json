@@ -29,7 +29,7 @@
     "wyrihaximus/react-http-middleware-session": "^2.0",
     "wyrihaximus/react-http-middleware-webroot-preload": "^1.4",
     "wyrihaximus/react-http-psr-15-middleware-group": "^1.2",
-    "wyrihaximus/recoil-queue-caller-pool": "dev-master",
+    "wyrihaximus/recoil-queue-caller-pool": "^1.0",
     "wyrihaximus/to-child-process-or-not-to-child-process": "^1.0",
     "wyrihaximus/to-coroutine-or-not-to-coroutine": "^1.0"
   },

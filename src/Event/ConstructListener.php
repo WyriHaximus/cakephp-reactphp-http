@@ -303,7 +303,7 @@ final class ConstructListener implements EventListenerInterface
             /** @var Server $application */
             $server = $serverFactory();
 
-            $environment = ServerRequestFactory::normalizeServer($request->getServerParams() + ['REQUEST_URI' => $request->getUri()->getPath()]);
+            $environment = ServerRequestFactory::normalizeServer($request->getServerParams() + ['REQUEST_URI' => $request->getUri()->getPath(), 'REQUEST_METHOD' => $request->getMethod()]);
             $uri = ServerRequestFactory::createUri($environment);
 
             $session = new Session($request->getAttribute(SessionMiddleware::ATTRIBUTE_NAME));

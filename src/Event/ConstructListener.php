@@ -322,6 +322,7 @@ final class ConstructListener implements EventListenerInterface
                 'webroot' => $uri->webroot,
                 'base' => $uri->base,
                 'session' => $session,
+                'input' => $request->getBody()->getContents(),
             ]);
             foreach ($request->getAttributes() as $key => $value) {
                 $sr = $sr->withAttribute($key, $value);

@@ -299,10 +299,6 @@ final class ConstructListener implements EventListenerInterface
         return static function (ServerRequestInterface $request) {
             parse_str($request->getUri()->getQuery(), $query);
 
-            $serverFactory = Configure::read('WyriHaximus.HttpServer.factories.server');
-            /** @var Server $application */
-            $server = $serverFactory();
-
             $extraEnv = ['REQUEST_URI' => $request->getUri()->getPath(), 'REQUEST_METHOD' => $request->getMethod()];
             foreach ($request->getHeaders() as $header => $contents) {
                 $extraEnv['HTTP_' . strtoupper(str_replace('-', '_', $header))] = $request->getHeaderLine($header);
@@ -328,8 +324,9 @@ final class ConstructListener implements EventListenerInterface
                 $sr = $sr->withAttribute($key, $value);
             }
 
+            $serverFactory = Configure::read('WyriHaximus.HttpServer.factories.server');
             /** @var ResponseInterface $response */
-            $response = $server->run($sr);
+            $response = ($serverFactory())->run($sr);
 
             if ($session->read() === [] || $session->read() === null) {
                 $session->destroy();

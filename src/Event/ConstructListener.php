@@ -16,14 +16,10 @@ use Cake\Core\App;
 use Cake\Core\Configure;
 use Cake\Core\Plugin;
 use Cake\Event\EventListenerInterface;
-use Cake\Http\Server;
-use Cake\Http\ServerRequest;
-use Cake\Http\ServerRequestFactory;
 use Cake\Routing\Router;
 use Cake\Utility\Inflector;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\CachedReader;
-use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use React\Cache\ArrayCache;
 use React\Cache\CacheInterface;
@@ -32,28 +28,22 @@ use React\Http\StreamingServer as HttpServer;
 use React\Socket\Server as SocketServer;
 use Roave\BetterReflection\BetterReflection;
 use Roave\BetterReflection\Reflector\ClassReflector;
-use Roave\BetterReflection\SourceLocator\Ast\Locator;
 use Roave\BetterReflection\SourceLocator\Type\SingleFileSourceLocator;
 use WyriHaximus\PSR3\CallableThrowableLogger\CallableThrowableLogger;
 use WyriHaximus\PSR3\ContextLogger\ContextLogger;
-use WyriHaximus\React\Cake\Http\Network\Session;
-use WyriHaximus\React\ChildProcess\Closure\ClosureChild;
-use WyriHaximus\React\ChildProcess\Closure\MessageFactory;
+use WyriHaximus\React\Cake\Http\PoolWorker;
 use WyriHaximus\React\ChildProcess\Messenger\Messages\Payload;
 use WyriHaximus\React\ChildProcess\Pool\Factory\Flexible;
 use WyriHaximus\React\ChildProcess\Pool\Options;
 use WyriHaximus\React\ChildProcess\Pool\PoolInterface;
-use WyriHaximus\React\Http\Middleware\SessionId\RandomBytes;
 use WyriHaximus\React\Http\Middleware\SessionMiddleware;
 use WyriHaximus\React\Http\Middleware\WebrootPreloadMiddleware;
 use WyriHaximus\React\Http\PSR15MiddlewareGroup\Factory;
-use function React\Promise\resolve;
-use function RingCentral\Psr7\stream_for;
-use function WyriHaximus\psr7_response_decode;
-use function WyriHaximus\psr7_response_encode;
-use function WyriHaximus\psr7_server_request_decode;
-use function WyriHaximus\psr7_server_request_encode;
 use WyriHaximus\React\Inspector\ChildProcessPools\ChildProcessPoolsCollector;
+use function React\Promise\resolve;
+use function WyriHaximus\psr7_response_decode;
+use function WyriHaximus\psr7_server_request_encode;
+use function WyriHaximus\React\Cake\Http\requestExecutionFunction;
 use function WyriHaximus\React\tickingFuturePromise;
 use function WyriHaximus\toChildProcessOrNotToChildProcess;
 use function WyriHaximus\toCoroutineOrNotToCoroutine;
@@ -136,7 +126,7 @@ final class ConstructListener implements EventListenerInterface
         $this->loop = $event->getLoop();
 
         Flexible::createFromClass(
-            ClosureChild::class,
+            PoolWorker::class,
             $this->loop,
             [
                 Options::TTL      => 4,
@@ -229,7 +219,7 @@ final class ConstructListener implements EventListenerInterface
         }
 
         if ($this->cache[$lookup]['coroutine'] === true) {
-            return $this->requestExecutionFunction()($request->withAttribute('coroutine', true));
+            return requestExecutionFunction($request->withAttribute('coroutine', true));
         }
 
         return $this->handRequestInChildProcess($request);
@@ -244,9 +234,8 @@ final class ConstructListener implements EventListenerInterface
             }
 
             $jsonRequest = psr7_server_request_encode($request);
-            $rpc = MessageFactory::rpc($this->childProcessFunction($jsonRequest));
 
-            return $this->pool->rpc($rpc)->then(function (Payload $payload) use ($session) {
+            return $this->pool->rpc(\WyriHaximus\React\ChildProcess\Messenger\Messages\Factory::rpc('request', ['request' => $jsonRequest]))->then(function (Payload $payload) use ($session) {
                 $response = $payload->getPayload();
                 $session->fromArray($response['session'], false);
                 return psr7_response_decode($response['response']);
@@ -260,79 +249,5 @@ final class ConstructListener implements EventListenerInterface
         return tickingFuturePromise($this->loop, function () {
             return $this->pool instanceof PoolInterface;
         })->then($func);
-    }
-
-    private function childProcessFunction(array $request)
-    {
-        $root = dirname(dirname(dirname(dirname(dirname(__DIR__)))));
-        $handler = $this->requestExecutionFunction();
-
-        return function () use ($root, $request, $handler) {
-            $request = psr7_server_request_decode($request);
-            $session = (new \WyriHaximus\React\Http\Middleware\Session('', [], new RandomBytes()));
-
-            if ($request->getAttribute(SessionMiddleware::ATTRIBUTE_NAME, false) !== false) {
-                $serializedSession = $request->getAttribute(SessionMiddleware::ATTRIBUTE_NAME);
-                $session = $session->fromArray(
-                    $serializedSession
-                );
-                $request = $request->withAttribute(
-                    SessionMiddleware::ATTRIBUTE_NAME,
-                    $session
-                );
-            }
-
-            require_once $root . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'bootstrap.php';
-
-            $response = $handler($request);
-            $response = $response->withBody(stream_for($response->body()));
-
-            return [
-                'response' => psr7_response_encode($response),
-                'session' => $session->toArray(),
-            ];
-        };
-    }
-
-    private function requestExecutionFunction()
-    {
-        return static function (ServerRequestInterface $request) {
-            parse_str($request->getUri()->getQuery(), $query);
-
-            $extraEnv = ['REQUEST_URI' => $request->getUri()->getPath(), 'REQUEST_METHOD' => $request->getMethod()];
-            foreach ($request->getHeaders() as $header => $contents) {
-                $extraEnv['HTTP_' . strtoupper(str_replace('-', '_', $header))] = $request->getHeaderLine($header);
-            }
-            $environment = ServerRequestFactory::normalizeServer($request->getServerParams() + $extraEnv);
-            $uri = ServerRequestFactory::createUri($environment);
-
-            $session = new Session($request->getAttribute(SessionMiddleware::ATTRIBUTE_NAME));
-
-            $sr = new ServerRequest([
-                'environment' => $environment,
-                'uri' => $uri,
-                'files' => $request->getUploadedFiles(),
-                'cookies' => $request->getCookieParams(),
-                'query' => $query,
-                'post' => (array)$request->getParsedBody(),
-                'webroot' => $uri->webroot,
-                'base' => $uri->base,
-                'session' => $session,
-                'input' => $request->getBody()->getContents(),
-            ]);
-            foreach ($request->getAttributes() as $key => $value) {
-                $sr = $sr->withAttribute($key, $value);
-            }
-
-            $serverFactory = Configure::read('WyriHaximus.HttpServer.factories.server');
-            /** @var ResponseInterface $response */
-            $response = ($serverFactory())->run($sr);
-
-            if ($session->read() === [] || $session->read() === null) {
-                $session->destroy();
-            }
-
-            return $response;
-        };
     }
 }

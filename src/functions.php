@@ -3,6 +3,8 @@
 namespace WyriHaximus\React\Cake\Http;
 
 use Cake\Core\Configure;
+use Cake\Error\ExceptionRenderer;
+use Cake\Http\Exception\HttpException;
 use Cake\Http\ServerRequest;
 use Cake\Http\ServerRequestFactory;
 use Psr\Http\Message\ServerRequestInterface;
@@ -56,8 +58,13 @@ function requestExecutionFunction(ServerRequestInterface $request)
     }
 
     $serverFactory = Configure::read('WyriHaximus.HttpServer.factories.server');
-    /** @var ResponseInterface $response */
-    $response = ($serverFactory())->run($sr);
+
+    try {
+        /** @var ResponseInterface $response */
+        $response = ($serverFactory())->run($sr);
+    } catch (HttpException $httpException) {
+        $response = (new ExceptionRenderer($httpException))->render();
+    }
 
     if ($session->read() === [] || $session->read() === null) {
         $session->destroy();

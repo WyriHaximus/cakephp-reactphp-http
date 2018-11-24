@@ -12,11 +12,15 @@
 namespace WyriHaximus\React\Cake\Http;
 
 use Cake\Controller\Exception\MissingActionException;
+use Cake\Error\ExceptionRenderer;
+use Cake\Http\Exception\HttpException;
 use LogicException;
 use React\EventLoop\LoopInterface;
 use React\Promise\Promise;
+use function React\Promise\reject;
 use function React\Promise\resolve;
 use Recoil\React\ReactKernel;
+use Throwable;
 use WyriHaximus\Cake\DI\Annotations\Inject;
 use WyriHaximus\React\Cake\Http\Http\PromiseResponse;
 use WyriHaximus\Recoil\Call;
@@ -75,6 +79,12 @@ trait CoroutineInvokeActionTrait
             }
 
             return $response;
+        }, function (Throwable $throwable) {
+            if ($throwable instanceof HttpException) {
+                return resolve((new ExceptionRenderer($throwable))->render());
+            }
+
+            return reject($throwable);
         }));
     }
 }

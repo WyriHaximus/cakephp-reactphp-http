@@ -69,6 +69,7 @@ function requestExecutionFunction(ServerRequestInterface $request)
     if ($session->read() === [] || $session->read() === null) {
         $session->destroy();
     }
+    unset($session);
 
     return $response;
 }

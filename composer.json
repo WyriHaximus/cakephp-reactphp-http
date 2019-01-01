@@ -34,7 +34,7 @@
     "wyrihaximus/to-coroutine-or-not-to-coroutine": "^1.0"
   },
   "require-dev": {
-    "api-clients/test-utilities": "^5.1",
+    "api-clients/test-utilities": "^5.4",
     "monolog/monolog": "^1.23"
   },
   "autoload": {

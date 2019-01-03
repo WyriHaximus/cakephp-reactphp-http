@@ -5399,16 +5399,16 @@
         },
         {
             "name": "wyrihaximus/to-coroutine-or-not-to-coroutine",
-            "version": "1.0.0",
+            "version": "1.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/WyriHaximus/php-to-coroutine-or-not-to-coroutine.git",
-                "reference": "f9b66cc962005147096f69c2b139d2537ec5cd50"
+                "reference": "8b9e7de28c81ce88359189f5c032da734eba60c4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WyriHaximus/php-to-coroutine-or-not-to-coroutine/zipball/f9b66cc962005147096f69c2b139d2537ec5cd50",
-                "reference": "f9b66cc962005147096f69c2b139d2537ec5cd50",
+                "url": "https://api.github.com/repos/WyriHaximus/php-to-coroutine-or-not-to-coroutine/zipball/8b9e7de28c81ce88359189f5c032da734eba60c4",
+                "reference": "8b9e7de28c81ce88359189f5c032da734eba60c4",
                 "shasum": ""
             },
             "require": {
@@ -5417,7 +5417,7 @@
                 "wyrihaximus/to-x-or-not-to-x": "^1.0"
             },
             "require-dev": {
-                "api-clients/test-utilities": "^5.0"
+                "api-clients/test-utilities": "^5.4"
             },
             "type": "library",
             "extra": {
@@ -5452,7 +5452,7 @@
                 }
             ],
             "description": "To coroutine or not to coroutine",
-            "time": "2018-09-22T20:31:37+00:00"
+            "time": "2019-01-02T16:52:38+00:00"
         },
         {
             "name": "wyrihaximus/to-x-or-not-to-x",

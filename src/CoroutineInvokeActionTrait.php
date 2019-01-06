@@ -15,18 +15,15 @@ use Cake\Controller\Exception\MissingActionException;
 use Cake\Error\ExceptionRenderer;
 use Cake\Http\Exception\HttpException;
 use LogicException;
-use React\EventLoop\LoopInterface;
 use React\Promise\Promise;
-use function React\Promise\reject;
-use function React\Promise\resolve;
-use Recoil\React\ReactKernel;
 use Throwable;
 use WyriHaximus\Cake\DI\Annotations\Inject;
 use WyriHaximus\React\Cake\Http\Http\PromiseResponse;
 use WyriHaximus\Recoil\Call;
-use WyriHaximus\Recoil\InfiniteCaller;
 use WyriHaximus\Recoil\QueueCallerInterface;
 use function ApiClients\Tools\Rx\observableFromArray;
+use function React\Promise\reject;
+use function React\Promise\resolve;
 
 trait CoroutineInvokeActionTrait
 {
@@ -34,12 +31,12 @@ trait CoroutineInvokeActionTrait
     private $queueCaller;
 
     /**
-     * @param LoopInterface $loop
+     * @param QueueCallerInterface $queueCaller
      * @Inject()
      */
-    public function setQueueCaller(LoopInterface $loop): void
+    public function setQueueCaller(QueueCallerInterface $queueCaller): void
     {
-        $this->queueCaller = new InfiniteCaller(ReactKernel::create($loop));
+        $this->queueCaller = $queueCaller;
     }
 
     public function invokeAction()

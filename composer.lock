@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a5eae3bc74b248791f3c3c7199ca44c9",
+    "content-hash": "458e96b091718686e05dfff136ff29de",
     "packages": [
         {
             "name": "api-clients/cs-fixer-config",
@@ -855,16 +855,16 @@
         },
         {
             "name": "hansott/psr7-cookies",
-            "version": "1.0.1",
+            "version": "2.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/hansott/psr7-cookies.git",
-                "reference": "2d734eec9272fe268db25212571fcd7b7bc25767"
+                "reference": "53a1ee8ae13a495aff2891849b607519c887b6ca"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/hansott/psr7-cookies/zipball/2d734eec9272fe268db25212571fcd7b7bc25767",
-                "reference": "2d734eec9272fe268db25212571fcd7b7bc25767",
+                "url": "https://api.github.com/repos/hansott/psr7-cookies/zipball/53a1ee8ae13a495aff2891849b607519c887b6ca",
+                "reference": "53a1ee8ae13a495aff2891849b607519c887b6ca",
                 "shasum": ""
             },
             "require": {
@@ -910,7 +910,7 @@
                 "psr7-cookies",
                 "setcookie"
             ],
-            "time": "2016-07-10T09:41:06+00:00"
+            "time": "2018-03-11T21:42:03+00:00"
         },
         {
             "name": "icecave/repr",
@@ -5013,20 +5013,20 @@
         },
         {
             "name": "wyrihaximus/react-http-middleware-session",
-            "version": "2.0.0",
+            "version": "2.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/WyriHaximus/reactphp-http-middleware-session.git",
-                "reference": "d2675a96e08baa8ea6efafea5f0608b51dc4fc11"
+                "reference": "929e5f1469d25cfc88bfe99a227ce0e89384d76e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WyriHaximus/reactphp-http-middleware-session/zipball/d2675a96e08baa8ea6efafea5f0608b51dc4fc11",
-                "reference": "d2675a96e08baa8ea6efafea5f0608b51dc4fc11",
+                "url": "https://api.github.com/repos/WyriHaximus/reactphp-http-middleware-session/zipball/929e5f1469d25cfc88bfe99a227ce0e89384d76e",
+                "reference": "929e5f1469d25cfc88bfe99a227ce0e89384d76e",
                 "shasum": ""
             },
             "require": {
-                "hansott/psr7-cookies": "^1.0",
+                "hansott/psr7-cookies": "^2.0 || ^1.0",
                 "php": "^7.2",
                 "psr/http-message": "^1.0",
                 "react/cache": "^0.5.0",
@@ -5034,7 +5034,7 @@
                 "react/promise": "^2.5"
             },
             "require-dev": {
-                "api-clients/test-utilities": "^4.2",
+                "api-clients/test-utilities": "^5.4",
                 "ringcentral/psr7": "^1.2.2"
             },
             "type": "library",
@@ -5054,7 +5054,7 @@
                 }
             ],
             "description": "react/http middleware that takes care of session handling",
-            "time": "2018-09-03T11:22:21+00:00"
+            "time": "2019-01-03T06:36:36+00:00"
         },
         {
             "name": "wyrihaximus/react-http-middleware-webroot-preload",

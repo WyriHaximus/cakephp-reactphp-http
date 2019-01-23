@@ -5204,16 +5204,16 @@
         },
         {
             "name": "wyrihaximus/recoil-queue-caller-pool",
-            "version": "1.0.1",
+            "version": "1.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/WyriHaximus/recoilphp-queue-caller-pool.git",
-                "reference": "ed6c3fdeb2c00bd8d095826092c58e155de5fcff"
+                "reference": "ce2dbc1eb19d54f7f11c9b763a5bf5eda836543b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WyriHaximus/recoilphp-queue-caller-pool/zipball/ed6c3fdeb2c00bd8d095826092c58e155de5fcff",
-                "reference": "ed6c3fdeb2c00bd8d095826092c58e155de5fcff",
+                "url": "https://api.github.com/repos/WyriHaximus/recoilphp-queue-caller-pool/zipball/ce2dbc1eb19d54f7f11c9b763a5bf5eda836543b",
+                "reference": "ce2dbc1eb19d54f7f11c9b763a5bf5eda836543b",
                 "shasum": ""
             },
             "require": {
@@ -5226,7 +5226,8 @@
                 "wyrihaximus/recoil-queue-caller": "^2.1"
             },
             "require-dev": {
-                "api-clients/test-utilities": "^5.4"
+                "api-clients/test-utilities": "^5.4",
+                "wyrihaximus/ticking-promise": "^1.6"
             },
             "type": "library",
             "autoload": {
@@ -5245,7 +5246,7 @@
                 }
             ],
             "description": "Pool wyrihaximus/recoil-queue-caller",
-            "time": "2019-01-03T20:36:13+00:00"
+            "time": "2019-01-23T21:15:42+00:00"
         },
         {
             "name": "wyrihaximus/rx-recoil-looper",
